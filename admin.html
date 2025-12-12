@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8" />
+<title>RUZA Admin Panel</title>
+<style>
+  body { font-family: Arial; background: #222; color: #fff; padding: 20px; }
+  #loginBox, #panel { max-width: 900px; margin: auto; }
+  input { padding: 10px; width: 100%; margin: 5px 0; box-sizing: border-box;}
+  button { padding: 8px 10px; background: green; color: #fff; border: none; cursor: pointer; }
+  .btn-reject { background: red; color: #fff; padding: 8px 10px; border: none; cursor: pointer;}
+  table { width: 100%; margin-top: 20px; background: #333; border-collapse: collapse; }
+  th, td { border: 1px solid #555; padding: 8px; text-align: center; word-break: break-all; }
+  .small { font-size: 0.9rem; color:#bbb; }
+  .ref-registered { color: #aaffaa; font-weight: 600; }
+  .ref-not { color: #ffb3b3; }
+  #logoutBtn { float: right; background: #444; padding: 8px; margin-bottom: 10px; color: #fff; border: none; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div id="loginBox">
+  <h2>Login Admin</h2>
+  <input id="user" placeholder="Username">
+  <input id="pass" placeholder="Password" type="password">
+  <button onclick="login()">Enter</button>
+  <p id="loginError" style="color:red;"></p>
+</div>
+
+<div id="panel" style="display:none;">
+  <button id="logoutBtn" onclick="logout()">Logout</button>
+  <h2>Admin Panel</h2>
+  <h3>Total Tokens Given: <span id="tokenCount">...</span></h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Address</th>
+        <th>Referrer</th>
+        <th>Referrer Registered?</th>
+        <th>Status</th>
+        <th>Referrals</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="list"></tbody>
+  </table>
+</div>
+
+<script>
+async function login() {
+  const resp = await fetch("/admin/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      user: document.getElementById("user").value,
+      pass: document.getElementById("pass").value
+    })
+  });
+
+  const data = await resp.json();
+  if (resp.ok && data.success) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("panel").style.display = "block";
+    await loadTotal();
+    await loadClaims();
+  } else {
+    document.getElementById("loginError").innerText = data.error || "Incorrect login!";
+  }
+}
+
+async function logout(){
+  await fetch("/admin/logout", { method: "POST", credentials: "include" });
+  location.reload();
+}
+
+async function loadTotal() {
+  const r = await fetch("/admin/total", { credentials: "include" });
+  if (r.ok) {
+    const j = await r.json();
+    document.getElementById("tokenCount").innerText = j.total;
+  } else {
+    document.getElementById("tokenCount").innerText = "N/A";
+  }
+}
+
+async function loadClaims() {
+  const resp = await fetch("/admin/claims", { credentials: "include" });
+  if (!resp.ok) {
+    // not authenticated or error
+    document.getElementById("loginBox").style.display = "block";
+    document.getElementById("panel").style.display = "none";
+    return;
+  }
+  const data = await resp.json();
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(c => {
+    const ref = c.referrer || "-";
+    const refRegistered = c.referrerRegistered ? "<span class='ref-registered'>Yes</span>" : (c.referrer ? "<span class='ref-not'>No</span>" : "-");
+    list.innerHTML += `
+      <tr>
+        <td>${c.address}</td>
+        <td>${ref}</td>
+        <td>${refRegistered}</td>
+        <td>${c.status}</td>
+        <td>${c.referrals || 0}</td>
+        <td>
+          <button onclick="update('${c._id}', 'done')">Done</button>
+          <button class="btn-reject" onclick="update('${c._id}', 'rejected')">Reject</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+async function update(id, status) {
+  const r = await fetch("/admin/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ id, status })
+  });
+  const j = await r.json();
+  if (r.ok && j.success) {
+    document.getElementById("tokenCount").innerText = j.newTotal;
+    await loadClaims();
+  } else {
+    alert(j.error || "Update failed");
+  }
+}
+</script>
+
+</body>
+</html>
