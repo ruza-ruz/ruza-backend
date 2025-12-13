@@ -48,6 +48,16 @@
 </div>
 
 <script>
+  window.addEventListener("load", async () => {
+  const r = await fetch(API + "/admin/claims", { credentials: "include" });
+  if (r.ok) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("panel").style.display = "block";
+    await loadTotal();
+    await loadClaims();
+  }
+});
+
 const API = "https://ruza-backend.onrender.com";
 
 async function login() {
@@ -123,7 +133,8 @@ const resp = await fetch(API + "/admin/claims", { credentials: "include" });
 }
 
 async function update(id, status) {
-  const r = await fetch("/admin/update", {
+  const r = await fetch(API + "/admin/update", {
+
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
