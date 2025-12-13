@@ -48,8 +48,11 @@
 </div>
 
 <script>
+const API = "https://ruza-backend.onrender.com";
+
 async function login() {
-  const resp = await fetch("/admin/login", {
+const resp = await fetch(API + "/admin/login", {
+
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -71,12 +74,14 @@ async function login() {
 }
 
 async function logout(){
-  await fetch("/admin/logout", { method: "POST", credentials: "include" });
+ await fetch(API + "/admin/logout", { method: "POST", credentials: "include" });
+
   location.reload();
 }
 
 async function loadTotal() {
-  const r = await fetch("/admin/total", { credentials: "include" });
+  const r = await fetch(API + "/admin/total", { credentials: "include" });
+
   if (r.ok) {
     const j = await r.json();
     document.getElementById("tokenCount").innerText = j.total;
@@ -86,7 +91,8 @@ async function loadTotal() {
 }
 
 async function loadClaims() {
-  const resp = await fetch("/admin/claims", { credentials: "include" });
+const resp = await fetch(API + "/admin/claims", { credentials: "include" });
+
   if (!resp.ok) {
     // not authenticated or error
     document.getElementById("loginBox").style.display = "block";
