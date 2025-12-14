@@ -69,25 +69,23 @@ const ALLOWED_ORIGINS = [
 app.use(
   cors({
     origin: (origin, cb) => {
-  if (!origin) return cb(null, true);
+      if (!origin) return cb(null, true);
 
-  // ✅ Allow backend admin panel
-  if (origin === "https://ruza-backend.onrender.com") return cb(null, true);
+      if (origin === "https://ruza-backend.onrender.com") return cb(null, true);
+      if (origin.endsWith("ruza-ruz.pages.dev")) return cb(null, true);
+      if (origin.includes(".repl.co")) return cb(null, true);
+      if (origin === "https://ruza-token.netlify.app") return cb(null, true);
+      if (origin === BASE_URL) return cb(null, true);
+      if (origin === REPLIT_URL) return cb(null, true);
+      if (origin.startsWith("http://localhost")) return cb(null, true);
 
-  if (origin.endsWith("ruza-ruz.pages.dev")) return cb(null, true);
-  if (origin.includes(".repl.co")) return cb(null, true);
-  if (origin === "https://ruza-token.netlify.app") return cb(null, true);
-  if (origin === BASE_URL) return cb(null, true);
-  if (origin === REPLIT_URL) return cb(null, true);
-  if (origin.startsWith("http://localhost")) return cb(null, true);
-
-  return cb(new Error("CORS blocked: " + origin));
-},
-,
+      return cb(new Error("CORS blocked: " + origin));
+    },
     credentials: true,
     methods: ["GET", "POST"]
   })
 );
+
 
 
 app.use(express.json());
