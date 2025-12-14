@@ -42,16 +42,20 @@ app.set("trust proxy", 1);
 // ---------------- SESSION (FIXED FOR REPLIT) ----------------
 app.use(
   session({
+    name: "ruza.sid",
     secret: "ruza-admin-secret",
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
-      secure: true,      // REQUIRED
+      secure: true,
       httpOnly: true,
-      sameSite: "none"   // REQUIRED FOR REPLIT + NETLIFY + CLOUDFLARE
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 6 // 6 hours
     }
   })
 );
+
 
 // ---------------- CORS ----------------
 const ALLOWED_ORIGINS = [
