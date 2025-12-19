@@ -153,6 +153,14 @@ Behavior rules:
 
     const data = await aiResponse.json();
 console.log("RAW OPENAI RESPONSE:", JSON.stringify(data, null, 2));
+
+if (!data.choices || !data.choices.length) {
+  return res.status(500).json({
+    error: "OpenAI returned empty choices. Check API key or quota.",
+    raw: data
+  });
+}
+
     
     const reply =
       data?.choices?.[0]?.message?.content ||
