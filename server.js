@@ -152,10 +152,8 @@ Behavior rules:
 
 
     const data = await aiResponse.json();
-console.log("OPENAI RAW RESPONSE:", data);  // ← این را اضافه کن
-
-
-
+console.log("RAW OPENAI RESPONSE:", JSON.stringify(data, null, 2));
+    
     const reply =
       data?.choices?.[0]?.message?.content ||
       "Sorry, I could not answer that. Please try again.";
