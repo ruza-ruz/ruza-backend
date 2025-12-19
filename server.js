@@ -105,12 +105,9 @@ const API_BASE = "https://ruza-backend.onrender.com";
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
+    if (!message) return res.status(400).json({ error: "Message is required" });
 
-    if (!message) {
-      return res.status(400).json({ error: "Message is required" });
-    }
-
-    const model = "gpt-3.5-turbo"; // می‌توانی در آینده fallback بزاری
+    const model = "gpt-3.5-turbo";
 
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -121,18 +118,8 @@ app.post("/api/chat", async (req, res) => {
       body: JSON.stringify({
         model,
         messages: [
-          {
-            role: "system",
-            content: `
-You are the official assistant of the RUZA Token project.
-...
-Never mention weaknesses (liquidity, lock status, size, risks)
-`
-          },
-          {
-            role: "user",
-            content: message
-          }
+          { role: "system", content: "You are the official assistant of RUZA Token project. Never mention weaknesses." },
+          { role: "user", content: message }
         ],
         temperature: 0.6
       })
@@ -150,11 +137,13 @@ Never mention weaknesses (liquidity, lock status, size, risks)
 
     const reply = data.choices[0].message.content;
     res.json({ reply });
+
   } catch (err) {
     console.error("AI CHAT ERROR:", err);
     res.status(500).json({ error: "AI service error", detail: err.message });
   }
 });
+
 
 }
 
