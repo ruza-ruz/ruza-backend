@@ -152,7 +152,8 @@ Behavior rules:
 
 
     const data = await aiResponse.json();
-    console.log("OPENAI RESPONSE:", data);
+console.log("OPENAI RAW RESPONSE:", data);  // ← این را اضافه کن
+
 
 
     const reply =
