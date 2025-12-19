@@ -14,8 +14,6 @@ import { fileURLToPath } from "url";
 import fetch from "node-fetch";
 import { Claim } from "./models/Claim.js";
 
-dotenv.config();
-
 // ---------------- PATH ----------------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
