@@ -145,20 +145,6 @@ app.post("/api/chat", async (req, res) => {
 });
 
 
-}
-
-    
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      "Sorry, I could not answer that. Please try again.";
-
-    res.json({ reply });
-  } catch (err) {
-    console.error("AI CHAT ERROR:", err);
-    res.status(500).json({ error: "AI service unavailable" });
-  }
-});
-
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
   res.set("Pragma", "no-cache");
