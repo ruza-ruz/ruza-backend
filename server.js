@@ -95,6 +95,8 @@ app.use(
 app.use(express.json());
 app.use(express.static(__dirname));
 // ---------------- AI CHAT (RUZA HELPER) ----------------
+const API_BASE = "https://ruza-backend.onrender.com";
+
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
