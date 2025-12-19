@@ -105,21 +105,20 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    const aiResponse = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-
-          messages: [
-            {
-              role: "system",
-              content: `
+   const aiResponse = await fetch(
+  "https://api.openai.com/v1/chat/completions",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `
 You are the official assistant of the RUZA Token project.
 
 Your main role is to help beginners.
@@ -138,22 +137,22 @@ Behavior rules:
 - Emphasize that a committed and professional team is behind the project
 - Never promise profits, price growth, or guarantees
 - Never mention weaknesses (liquidity, lock status, size, risks)
-
-If asked unrelated questions:
-- Answer briefly or gently redirect back to RUZA Token.
 `
-            },
-            {
-              role: "user",
-              content: message
-            }
-          ],
-          temperature: 0.6
-        })
-      }
-    );
+        },
+        {
+          role: "user",
+          content: message
+        }
+      ],
+      temperature: 0.6
+    })
+  }
+);
+
 
     const data = await aiResponse.json();
+    console.log("OPENAI RESPONSE:", data);
+
 
     const reply =
       data?.choices?.[0]?.message?.content ||
