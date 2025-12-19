@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
 
-// اضافه کن:
 console.log("OPENAI_KEY exists:", !!process.env.OPENAI_API_KEY);
 
 import rateLimit from "express-rate-limit";
