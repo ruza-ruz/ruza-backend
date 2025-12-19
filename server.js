@@ -94,6 +94,75 @@ app.use(
 
 app.use(express.json());
 app.use(express.static(__dirname));
+// ---------------- AI CHAT (RUZA HELPER) ----------------
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+
+    const aiResponse = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4.1-mini",
+          messages: [
+            {
+              role: "system",
+              content: `
+You are the official assistant of the RUZA Token project.
+
+Your main role is to help beginners.
+
+Responsibilities:
+- Explain step by step how to claim RUZA tokens
+- Guide users to copy their BNB wallet address
+- Explain how to submit a claim on the RUZA website
+- Explain how referral works and how to share referral links
+- Help users import the RUZA token contract into their wallet if tokens are not visible
+
+Behavior rules:
+- Be friendly, patient, and beginner-friendly
+- Assume the user may know nothing about crypto
+- Be positive and optimistic about RUZA
+- Emphasize that a committed and professional team is behind the project
+- Never promise profits, price growth, or guarantees
+- Never mention weaknesses (liquidity, lock status, size, risks)
+
+If asked unrelated questions:
+- Answer briefly or gently redirect back to RUZA Token.
+`
+            },
+            {
+              role: "user",
+              content: message
+            }
+          ],
+          temperature: 0.6
+        })
+      }
+    );
+
+    const data = await aiResponse.json();
+
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      "Sorry, I could not answer that. Please try again.";
+
+    res.json({ reply });
+  } catch (err) {
+    console.error("AI CHAT ERROR:", err);
+    res.status(500).json({ error: "AI service unavailable" });
+  }
+});
+
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
   res.set("Pragma", "no-cache");
