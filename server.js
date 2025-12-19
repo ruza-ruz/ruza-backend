@@ -1,6 +1,11 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+dotenv.config();
+
+// اضافه کن:
+console.log("OPENAI_KEY exists:", !!process.env.OPENAI_API_KEY);
+
 import rateLimit from "express-rate-limit";
 import cors from "cors";
 import session from "express-session";
@@ -105,60 +110,52 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ error: "Message is required" });
     }
 
-   const aiResponse = await fetch(
-  "https://api.openai.com/v1/chat/completions",
-  {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
+    const model = "gpt-3.5-turbo"; // می‌توانی در آینده fallback بزاری
 
-      messages: [
-        {
-          role: "system",
-          content: `
+    const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: "system",
+            content: `
 You are the official assistant of the RUZA Token project.
-
-Your main role is to help beginners.
-
-Responsibilities:
-- Explain step by step how to claim RUZA tokens
-- Guide users to copy their BNB wallet address
-- Explain how to submit a claim on the RUZA website
-- Explain how referral works and how to share referral links
-- Help users import the RUZA token contract into their wallet if tokens are not visible
-
-Behavior rules:
-- Be friendly, patient, and beginner-friendly
-- Assume the user may know nothing about crypto
-- Be positive and optimistic about RUZA
-- Emphasize that a committed and professional team is behind the project
-- Never promise profits, price growth, or guarantees
-- Never mention weaknesses (liquidity, lock status, size, risks)
+...
+Never mention weaknesses (liquidity, lock status, size, risks)
 `
-        },
-        {
-          role: "user",
-          content: message
-        }
-      ],
-      temperature: 0.6
-    })
-  }
-);
-
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ],
+        temperature: 0.6
+      })
+    });
 
     const data = await aiResponse.json();
-console.log("RAW OPENAI RESPONSE:", JSON.stringify(data, null, 2));
+    console.log("RAW OPENAI RESPONSE:", JSON.stringify(data, null, 2));
 
-if (!data.choices || !data.choices.length) {
-  return res.status(500).json({
-    error: "OpenAI returned empty choices. Check API key or quota.",
-    raw: data
-  });
+    if (!data.choices || !data.choices.length) {
+      return res.status(500).json({
+        error: "OpenAI returned empty choices. Check API key or quota.",
+        raw: data
+      });
+    }
+
+    const reply = data.choices[0].message.content;
+    res.json({ reply });
+  } catch (err) {
+    console.error("AI CHAT ERROR:", err);
+    res.status(500).json({ error: "AI service error", detail: err.message });
+  }
+});
+
 }
 
     
