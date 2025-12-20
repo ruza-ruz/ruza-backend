@@ -102,45 +102,49 @@ const API_BASE = "https://ruza-backend.onrender.com";
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
-    if (!message) return res.status(400).json({ error: "Message is required" });
-
-    const model = "gpt-3.5-turbo";
-
-    const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: "You are the official assistant of RUZA Token project. Never mention weaknesses." },
-          { role: "user", content: message }
-        ],
-        temperature: 0.6
-      })
-    });
-
-    const data = await aiResponse.json();
-    console.log("RAW OPENAI RESPONSE:", JSON.stringify(data, null, 2));
-
-    if (!data.choices || !data.choices.length) {
-      return res.status(500).json({
-        error: "OpenAI returned empty choices. Check API key or quota.",
-        raw: data
-      });
+    if (!message) {
+      return res.json({ reply: "Please ask a question about RUZA." });
     }
 
-    const reply = data.choices[0].message.content;
+    const response = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "llama3-70b-8192",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are the official RUZA Token assistant. Explain claiming RUZA tokens, referrals, wallet setup, and general questions clearly."
+            },
+            {
+              role: "user",
+              content: message
+            }
+          ],
+          temperature: 0.6
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      "I can help you with claiming RUZA tokens and using referrals.";
+
     res.json({ reply });
 
-  } catch (err) {
-    console.error("AI CHAT ERROR:", err);
-    res.status(500).json({ error: "AI service error", detail: err.message });
+  } catch (error) {
+    console.error("CHAT ERROR:", error);
+    res.json({ reply: "AI service is temporarily unavailable." });
   }
 });
-
 
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
