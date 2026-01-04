@@ -97,11 +97,12 @@ app.use(
 app.use(express.json());
 app.use(express.static(__dirname));
 // ---------------- AI CHAT (RUZA HELPER) ----------------
-const API_BASE = "https://ruza-backend.onrender.com";
 
+// ---------------- AI CHAT (RUZA HELPER) ----------------
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
+
     if (!message) {
       return res.json({ reply: "Please ask a question about RUZA." });
     }
@@ -134,27 +135,25 @@ app.post("/api/chat", async (req, res) => {
 
     const data = await response.json();
 
-    console.log("GROQ RAW RESPONSE:", JSON.stringify(data, null, 2));
+    if (!data?.choices || !data.choices.length) {
+      return res.status(500).json({
+        error: "Groq returned empty response",
+        raw: data
+      });
+    }
 
-if (!data?.choices || !data.choices.length) {
-  return res.status(500).json({
-    error: "Groq returned empty response",
-    raw: data
-  });
-}
-
-const reply = data.choices[0].message.content;
-res.json({ reply });
-
-    res.json({ reply });
+    const reply = data.choices[0].message.content;
+    return res.json({ reply });
 
   } catch (error) {
-  console.error("CHAT ERROR:", error);
-  res.status(500).json({
-    error: "AI service error",
-    detail: error.message
-  });
-}
+    console.error("CHAT ERROR:", error);
+    return res.status(500).json({
+      error: "AI service error",
+      detail: error.message
+    });
+  }
+});
+
 
 
 app.use((req, res, next) => {
