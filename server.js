@@ -134,17 +134,28 @@ app.post("/api/chat", async (req, res) => {
 
     const data = await response.json();
 
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      "I can help you with claiming RUZA tokens and using referrals.";
+    console.log("GROQ RAW RESPONSE:", JSON.stringify(data, null, 2));
+
+if (!data?.choices || !data.choices.length) {
+  return res.status(500).json({
+    error: "Groq returned empty response",
+    raw: data
+  });
+}
+
+const reply = data.choices[0].message.content;
+res.json({ reply });
 
     res.json({ reply });
 
   } catch (error) {
-    console.error("CHAT ERROR:", error);
-    res.json({ reply: "AI service is temporarily unavailable." });
-  }
-});
+  console.error("CHAT ERROR:", error);
+  res.status(500).json({
+    error: "AI service error",
+    detail: error.message
+  });
+}
+
 
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
