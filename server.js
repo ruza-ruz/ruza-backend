@@ -3,7 +3,8 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
 
-console.log("OPENAI_KEY exists:", !!process.env.OPENAI_API_KEY);
+console.log("GROQ_KEY exists:", !!process.env.GROQ_API_KEY);
+
 
 import rateLimit from "express-rate-limit";
 import cors from "cors";
