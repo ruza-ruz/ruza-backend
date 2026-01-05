@@ -119,7 +119,8 @@ app.post("/api/chat", async (req, res) => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "llama3-8b-8192", // ⬅️ مهم
+          model: "llama-3.1-8b-instant",
+, // ⬅️ مهم
           messages: [
             {
               role: "system",
