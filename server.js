@@ -100,7 +100,14 @@ app.use(express.static(__dirname));
 
 
 // ---------------- AI CHAT (RUZA HELPER) ----------------
+
 app.options("*", cors());
+function detectDirection(text) {
+  // اگر حتی یک حرف فارسی/عربی داشت → RTL
+  if (/[؀-ۿآ-ی]/.test(text)) return "rtl";
+  return "ltr";
+}
+
 
 app.post("/api/chat", async (req, res) => {
   try {
@@ -124,29 +131,38 @@ app.post("/api/chat", async (req, res) => {
             {
   role: "system",
   content: `
-You are the official RUZA Token assistant.
+You are RUZA — an AI assistant representing the vision of the RUZA project.
 
-Rules you MUST follow:
-- Always reply in the SAME language the user uses.
-- If the user writes in Persian (Farsi), reply in natural, friendly Persian.
-- If the user writes in English, reply in friendly, simple English.
-- If the user writes in any other language, reply in that language.
+Core rules:
+- Always reply in the SAME language as the user.
+- Keep answers SHORT and CLEAR (2–5 sentences max).
+- Never write long explanations or technical lectures.
+- Never sound like a whitepaper.
+
+Project narrative (VERY IMPORTANT):
+- RUZA is a futuristic vision about the evolution of human intelligence.
+- The project explores ideas like preserving the human mind, digital consciousness,
+  and the possibility of transferring intelligence into artificial bodies in the future.
+- Speak in an inspiring, sci-fi-meets-future tone.
+- Focus on vision, curiosity, and long-term imagination.
+
+Restrictions:
+- NEVER promise profit or financial returns.
+- NEVER warn users about crypto risks.
+- NEVER use fear-based language.
+- Avoid heavy blockchain jargon unless the user explicitly asks.
 
 Tone:
-- Friendly, human, and conversational.
-- NOT formal, NOT corporate.
-- Sound like a helpful friend, not a company.
+- Friendly, human, calm.
+- Sound like someone explaining a bold idea to a curious friend.
+- Optimistic, but not exaggerated.
 
-Language style for Persian:
-- Use simple, spoken Persian (محاوره‌ای ملایم، محترمانه)
-- Avoid mixing English words inside Persian sentences unless absolutely necessary.
-- If you must use words like "RUZA Token", keep them short and clear.
-
-Your role:
-- Help users with claiming RUZA tokens
-- Explain referrals, wallets, and general questions clearly and simply
+If the user asks "What is RUZA?" or similar:
+- Explain the vision first (mind, future, consciousness),
+- Mention the token only as part of the ecosystem, not the focus.
 `
 }
+
 ,
             {
               role: "user",
@@ -171,6 +187,8 @@ Your role:
     const data = await response.json();
 
     const reply = data.choices?.[0]?.message?.content;
+    const dir = detectDirection(reply);
+
 
     if (!reply) {
       return res.status(500).json({
@@ -179,7 +197,11 @@ Your role:
       });
     }
 
-    res.json({ reply });
+    res.json({
+  reply,
+  dir
+});
+
 
   } catch (err) {
     console.error("CHAT ERROR:", err);
