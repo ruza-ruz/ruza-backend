@@ -78,6 +78,7 @@ app.use(
       if (!origin) return cb(null, true);
 
       if (origin === "https://ruza-backend.onrender.com") return cb(null, true);
+      if (origin === "https://hoppscotch.io") return cb(null, true);
       if (origin.endsWith("ruza-ruz.pages.dev")) return cb(null, true);
       if (origin.includes(".repl.co")) return cb(null, true);
       if (origin === "https://ruza-token.netlify.app") return cb(null, true);
