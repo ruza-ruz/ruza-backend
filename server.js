@@ -120,7 +120,6 @@ app.post("/api/chat", async (req, res) => {
         },
         body: JSON.stringify({
           model: "llama-3.1-8b-instant",
-, // ⬅️ مهم
           messages: [
             {
               role: "system",
