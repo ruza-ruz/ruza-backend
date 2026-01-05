@@ -99,6 +99,8 @@ app.use(express.static(__dirname));
 
 
 // ---------------- AI CHAT (RUZA HELPER) ----------------
+app.options("*", cors());
+
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
