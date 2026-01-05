@@ -96,7 +96,7 @@ app.use(
 
 app.use(express.json());
 app.use(express.static(__dirname));
-// ---------------- AI CHAT (RUZA HELPER) ----------------
+
 
 // ---------------- AI CHAT (RUZA HELPER) ----------------
 app.post("/api/chat", async (req, res) => {
@@ -116,7 +116,7 @@ app.post("/api/chat", async (req, res) => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "llama3-70b-8192",
+          model: "llama3-8b-8192", // ⬅️ مهم
           messages: [
             {
               role: "system",
@@ -133,26 +133,38 @@ app.post("/api/chat", async (req, res) => {
       }
     );
 
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("GROQ ERROR:", response.status, text);
+      return res.status(500).json({
+        error: "Groq API error",
+        status: response.status,
+        raw: text
+      });
+    }
+
     const data = await response.json();
 
-    if (!data?.choices || !data.choices.length) {
+    const reply = data.choices?.[0]?.message?.content;
+
+    if (!reply) {
       return res.status(500).json({
-        error: "Groq returned empty response",
+        error: "Invalid Groq response",
         raw: data
       });
     }
 
-    const reply = data.choices[0].message.content;
-    return res.json({ reply });
+    res.json({ reply });
 
-  } catch (error) {
-    console.error("CHAT ERROR:", error);
-    return res.status(500).json({
-      error: "AI service error",
-      detail: error.message
+  } catch (err) {
+    console.error("CHAT ERROR:", err);
+    res.status(500).json({
+      error: "AI service crashed",
+      detail: err.message
     });
   }
 });
+
 
 
 
