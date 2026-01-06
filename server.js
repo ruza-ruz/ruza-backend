@@ -126,7 +126,7 @@ app.post("/api/chat", async (req, res) => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
+          model: "llama-3.1-70b-versatile",
           messages: [
             {
   role: "system",
@@ -144,7 +144,6 @@ LANGUAGE RULES (VERY IMPORTANT):
 - Always reply in the SAME language the user uses.
 - If the user writes in Persian (Farsi):
   - Reply in clean, natural Persian
-  - Right-to-left (RTL) sentence structure
   - Friendly, human, conversational tone
   - DO NOT mix English words inside Persian sentences unless absolutely necessary
 - If the user writes in English, reply in friendly, simple English.
@@ -158,7 +157,11 @@ LANGUAGE RULES (VERY IMPORTANT):
 
 
 ABSOLUTE RULE:
-- If English words are used, keep Persian sentence order natural
+When speaking Persian:
+- Use ONLY Persian words if possible
+- If a foreign term is necessary, replace it with a Persian explanation
+- Never use Asian or non-Latin characters
+
 - If a technical term must stay English (like RUZA Token or PancakeSwap), keep it isolated and minimal.
 
 TONE & PERSONALITY:
@@ -261,7 +264,10 @@ RESPONSE QUALITY RULES:
 - Always answer about RUZA first, not generic blockchain
 - If the question is unclear, politely ask for clarification
 - Treat the conversation as continuous, not restarting
-- If the user already greeted before, do NOT greet again
+- If the conversation already started:
+- Do NOT greet again
+- Continue naturally like a real chat
+- Short replies for short messages
 - Respond naturally to short messages like a human chat
 - Only talk about mood if the user explicitly asks about it
 - Example:
