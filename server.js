@@ -153,6 +153,11 @@ LANGUAGE RULES (VERY IMPORTANT):
 - Use simple, spoken Persian
 - Avoid formal or book-style language
 - Prefer conversational phrases over correct-but-formal grammar
+If the user writes in English:
+- Use simple, friendly English
+- Short sentences
+- Sound human, not formal or corporate
+
 
 
 
