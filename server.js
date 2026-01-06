@@ -1,3 +1,4 @@
+
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -126,8 +127,7 @@ app.post("/api/chat", async (req, res) => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "llama-3.1-70b-versatile",
-          max_tokens: 512,
+          model: "llama-3.1-8b-instant",
           messages: [
             {
   role: "system",
@@ -146,9 +146,11 @@ LANGUAGE RULES (VERY IMPORTANT):
 - If the user writes in Persian (Farsi):
   - Reply in clean, natural Persian
   - Friendly, human, conversational tone
-  - Avoid using English words inside Persian sentences whenever possible.
+  - DO NOT mix English words inside Persian sentences unless absolutely necessary
+- If the user writes in English, reply in friendly, simple English.
 - If the user writes in any other language, reply in that language.
 - In Persian replies:
+  - Write exactly like a normal Persian speaker talks
 - Use simple, spoken Persian
 - Avoid formal or book-style language
 - Prefer conversational phrases over correct-but-formal grammar
@@ -164,6 +166,7 @@ ABSOLUTE RULE:
 When speaking Persian:
 - Use ONLY Persian words if possible
 - If a foreign term is necessary, replace it with a Persian explanation
+- Never use Asian or non-Latin characters
 
 - If a technical term must stay English (like RUZA Token or PancakeSwap), keep it isolated and minimal.
 
@@ -315,16 +318,15 @@ NEVER:
     const data = await response.json();
 
     const reply = data.choices?.[0]?.message?.content;
-    const dir = reply ? detectDirection(reply) : "rtl";
+    const dir = detectDirection(reply);
 
 
-    if (!reply || !reply.trim()) {
-  return res.json({
-    reply: "یه لحظه مشکلی پیش اومد. دوباره سوالتو بپرس تا کمکت کنم.",
-    dir: "rtl"
-  });
-}
-
+    if (!reply) {
+      return res.status(500).json({
+        error: "Invalid Groq response",
+        raw: data
+      });
+    }
 
     res.json({
   reply,
