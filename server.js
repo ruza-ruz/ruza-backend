@@ -127,6 +127,7 @@ app.post("/api/chat", async (req, res) => {
         },
         body: JSON.stringify({
           model: "llama-3.1-70b-versatile",
+          max_tokens: 512,
           messages: [
             {
   role: "system",
@@ -314,15 +315,16 @@ NEVER:
     const data = await response.json();
 
     const reply = data.choices?.[0]?.message?.content;
-    const dir = detectDirection(reply);
+    const dir = reply ? detectDirection(reply) : "rtl";
 
 
-    if (!reply) {
-      return res.status(500).json({
-        error: "Invalid Groq response",
-        raw: data
-      });
-    }
+    if (!reply || !reply.trim()) {
+  return res.json({
+    reply: "یه لحظه مشکلی پیش اومد. دوباره سوالتو بپرس تا کمکت کنم.",
+    dir: "rtl"
+  });
+}
+
 
     res.json({
   reply,
