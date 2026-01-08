@@ -384,7 +384,7 @@ Example: "باکسی که نوشته Your BNB Smart Chain Wallet Address"
 NO EMPTY ANSWER RULE:
 Never give empty or evasive answers.
 If the answer is known, explain briefly.
-
+`
 },
 
             {
