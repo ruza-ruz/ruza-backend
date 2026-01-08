@@ -4,8 +4,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 console.log("GROQ_KEY exists:", !!process.env.GROQ_API_KEY);
-
-
 import rateLimit from "express-rate-limit";
 import cors from "cors";
 import session from "express-session";
@@ -58,7 +56,6 @@ app.use(
   })
 );
 
-
 // ---------------- CORS ----------------
 const ALLOWED_ORIGINS = [
   BASE_URL,
@@ -70,7 +67,6 @@ const ALLOWED_ORIGINS = [
   "http://localhost:5000",
   "https://a81912a7-42f3-4326-83a4-1182d241dad7-00-wmx91wfir4d7.janeway.repl.co"
 ].filter(Boolean);
-
 
 app.use(
   cors({
@@ -93,11 +89,8 @@ app.use(
   })
 );
 
-
-
 app.use(express.json());
 app.use(express.static(__dirname));
-
 
 // ---------------- AI CHAT (RUZA HELPER) ----------------
 
@@ -107,7 +100,6 @@ function detectDirection(text) {
   if (/[؀-ۿآ-ی]/.test(text)) return "rtl";
   return "ltr";
 }
-
 
 app.post("/api/chat", async (req, res) => {
   try {
@@ -219,7 +211,6 @@ RUZA Vision:
 - Enable humans, after biological death, to continue existence
   by transferring consciousness into digital systems or robotic bodies
 
-
 CLAIM & FREE TOKEN KNOWLEDGE:
 
 - Every user can claim **100 RUZA tokens for free**
@@ -274,7 +265,6 @@ DELIVERY CLARITY RULE:
 If the user asks about transferring tokens:
 Explain that claimed tokens are sent automatically to their wallet.
 No manual transfer is needed.
-
 
 REFERRAL SYSTEM:
 - Each user gets a referral link
@@ -376,7 +366,6 @@ You know the RUZA website includes:
 - Understand the user's question before answering
 - Do NOT jump to wallets or tokens unless the user asks about them
 
-  
 LIVE PRICE ANSWER RULE:
 If the user asks about live price:
 Mention that the price is shown live on the site
@@ -431,7 +420,6 @@ If the answer is known, explain briefly.
   });
 }
 
-
     res.json({
   reply,
   dir
@@ -447,16 +435,12 @@ If the answer is known, explain briefly.
   }
 });
 
-
-
-
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
   res.set("Pragma", "no-cache");
   res.set("Expires", "0");
   next();
 });
-
 
 // ---------------- MongoDB ----------------
 mongoose
@@ -575,8 +559,6 @@ app.get("/api/liveprice", async (req, res) => {
     res.json({ price: null });
   }
 });
-
-
 
 // ---------------- ADMIN LOGIN ----------------
 app.post("/admin/login", (req, res) => {
