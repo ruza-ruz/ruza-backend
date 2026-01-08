@@ -396,7 +396,7 @@ NO EMPTY ANSWER RULE:
 Never give empty or evasive answers.
 If the answer is known, explain briefly.
 
-}
+},
 
             {
               role: "user",
