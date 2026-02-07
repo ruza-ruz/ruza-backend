@@ -122,7 +122,7 @@ app.post("/api/chat", async (req, res) => {
           max_tokens: 512,
           messages: [
             {
-  role: "system"
+  role: "system",
 content: `
 You are RUZA AI Assistant — the official AI guide of the RUZA Token project.
 
