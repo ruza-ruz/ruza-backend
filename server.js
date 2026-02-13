@@ -334,12 +334,14 @@ app.get("/api/stats", async (req, res) => {
 app.get("/api/liveprice", async (req, res) => {
   try {
     const response = await fetch(
-      "https://api.dexscreener.com/latest/dex/pairs/bsc/0x2ec86e1b869cb251fe9441f02c01761543e6cbbd"
-    );
+  "https://api.dexscreener.com/latest/dex/search?q=0x2ec86e1b869cb251fe9441f02c01761543e6cbbd"
+);
 
-    const data = await response.json();
+const data = await response.json();
 
-    const pair = data?.pairs?.[0];
+const pair = data?.pairs?.find(
+  p => p.chainId === "bsc"
+);
 
 const price = pair?.priceUsd
   ? Number(pair.priceUsd)
