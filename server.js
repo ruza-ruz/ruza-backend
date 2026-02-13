@@ -339,11 +339,14 @@ app.get("/api/liveprice", async (req, res) => {
 
     const data = await response.json();
 
-    const price = data?.pair?.priceUsd
-      ? Number(data.pair.priceUsd)
-      : null;
+    const pair = data?.pairs?.[0];
 
-    res.json({ price });
+const price = pair?.priceUsd
+  ? Number(pair.priceUsd)
+  : null;
+
+res.json({ price });
+
 
   } catch (error) {
     console.error("DexScreener error:", error);
