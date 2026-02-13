@@ -333,33 +333,24 @@ app.get("/api/stats", async (req, res) => {
 // ---------------- LIVE PRICE ----------------
 app.get("/api/liveprice", async (req, res) => {
   try {
-    const url = "https://api.dexscreener.com/latest/dex/tokens/0x2ec86e1b869cb251fe9441f02c01761543e6cbbd";
+    const response = await fetch(
+      "https://api.dexscreener.com/latest/dex/pairs/bsc/0x2ec86e1b869cb251fe9441f02c01761543e6cbbd"
+    );
 
-    const unique = Date.now(); // جلوگیری 100٪ از کش Cloudflare
+    const data = await response.json();
 
-    const resp = await fetch(url + "?t=" + unique, {
-      headers: {
-        "Cache-Control": "no-cache",
-        "Pragma": "no-cache"
-      }
-    });
-
-    const data = await resp.json();
-
-    const price = data?.pairs?.[0]?.priceUsd
-      ? Number(data.pairs[0].priceUsd)
+    const price = data?.pair?.priceUsd
+      ? Number(data.pair.priceUsd)
       : null;
 
-    res.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-    res.set("Pragma", "no-cache");
-    res.set("Expires", "0");
-
     res.json({ price });
-  } catch (err) {
-    console.error("Live Price Error:", err);
+
+  } catch (error) {
+    console.error("DexScreener error:", error);
     res.json({ price: null });
   }
 });
+
 
 // ---------------- ADMIN LOGIN ----------------
 app.post("/admin/login", (req, res) => {
