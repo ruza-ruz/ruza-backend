@@ -345,7 +345,7 @@ const provider = new ethers.JsonRpcProvider(process.env.BSC_RPC);
 const PAIR_ADDRESS = "0xF65A43a119D2eFdd9512d319E1cf43b65dDDf43c";
 
 // آدرس Chainlink BNB/USD Price Feed در BSC
-const BNB_USD_FEED = "0x0567F2323251f0Aab15c8DfB1967E4e8A7D42aeE";
+const BNB_USD_FEED = "0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee";
 
 const pairAbi = [
   "function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
