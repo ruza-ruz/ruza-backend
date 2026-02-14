@@ -333,7 +333,7 @@ app.get("/api/stats", async (req, res) => {
 // ---------------- LIVE PRICE (USD - On Chain) ----------------
 import { ethers } from "ethers";
 
-const provider = new ethers.JsonRpcProvider("https://bsc-dataseed.binance.org/");
+const provider = new ethers.JsonRpcProvider("https://rpc.ankr.com/bsc");
 
 // آدرس Pair RUZA / BNB
 const PAIR_ADDRESS = "0xF65A43a119D2eFdd9512d319E1cf43b65dDDf43c";
