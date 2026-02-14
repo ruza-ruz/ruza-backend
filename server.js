@@ -330,26 +330,49 @@ app.get("/api/stats", async (req, res) => {
   }
 });
 
-// ---------------- LIVE PRICE (PancakeSwap) ----------------
+// ---------------- LIVE PRICE (Direct from BSC Pair) ----------------
+import { ethers } from "ethers";
+
+const provider = new ethers.JsonRpcProvider("https://bsc-dataseed.binance.org/");
+
+// آدرس Pair RUZA / BNB
+const PAIR_ADDRESS = "0xF65A43a119D2eFdd9512d319E1cf43b65dDDf43c";
+
+const pairAbi = [
+  "function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
+  "function token0() view returns (address)",
+  "function token1() view returns (address)"
+];
+
 app.get("/api/liveprice", async (req, res) => {
   try {
-    const response = await fetch(
-      "https://api.pancakeswap.info/api/v2/tokens/0x2ec86e1b869cb251fe9441f02c01761543e6cbbd"
-    );
+    const pair = new ethers.Contract(PAIR_ADDRESS, pairAbi, provider);
 
-    const data = await response.json();
+    const [reserves, token0] = await Promise.all([
+      pair.getReserves(),
+      pair.token0()
+    ]);
 
-    const price = data?.data?.price
-      ? Number(data.data.price)
-      : null;
+    const reserve0 = Number(reserves[0]);
+    const reserve1 = Number(reserves[1]);
+
+    // اگر RUZA توکن اول باشد
+    let price;
+
+    if (token0.toLowerCase() === "0x2ec86e1b869cb251fe9441f02c01761543e6cbbd".toLowerCase()) {
+      price = reserve1 / reserve0;
+    } else {
+      price = reserve0 / reserve1;
+    }
 
     res.json({ price });
 
-  } catch (error) {
-    console.error("PancakeSwap price error:", error);
+  } catch (err) {
+    console.error("BSC price error:", err);
     res.json({ price: null });
   }
 });
+
 
 
 
