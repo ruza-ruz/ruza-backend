@@ -371,6 +371,7 @@ app.get("/api/liveprice", async (req, res) => {
       pair.token1()
     ]);
 
+    // گرفتن decimals
     const token0Contract = new ethers.Contract(token0, erc20Abi, provider);
     const token1Contract = new ethers.Contract(token1, erc20Abi, provider);
 
@@ -380,23 +381,25 @@ app.get("/api/liveprice", async (req, res) => {
       priceFeed.latestRoundData()
     ]);
 
-    // تبدیل BigInt به float با در نظر گرفتن decimals
-    const reserve0 = Number(reserves[0]) / 10 ** dec0;
-    const reserve1 = Number(reserves[1]) / 10 ** dec1;
+    // 👇 اینجا اصلاح اصلی انجام شده
+    const reserve0 = parseFloat(ethers.formatUnits(reserves[0], dec0));
+    const reserve1 = parseFloat(ethers.formatUnits(reserves[1], dec1));
 
     let priceInBNB;
 
     if (token0.toLowerCase() === RUZA.toLowerCase()) {
-      // RUZA = token0
       priceInBNB = reserve1 / reserve0;
     } else {
-      // RUZA = token1
       priceInBNB = reserve0 / reserve1;
     }
 
     const bnbUsd = Number(roundData[1]) / 1e8;
-
     const priceUsd = priceInBNB * bnbUsd;
+
+    // جلوگیری از NaN
+    if (!priceUsd || !isFinite(priceUsd)) {
+      return res.json({ price: null });
+    }
 
     res.json({
       price: Number(priceUsd.toFixed(8))
