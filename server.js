@@ -330,7 +330,7 @@ app.get("/api/stats", async (req, res) => {
   }
 });
 
-// ---------------- LIVE PRICE (USD - On Chain) ----------------
+// ---------------- LIVE PRICE (ON-CHAIN FIXED) ----------------
 import { ethers } from "ethers";
 
 if (!process.env.BSC_RPC) {
@@ -340,16 +340,20 @@ if (!process.env.BSC_RPC) {
 
 const provider = new ethers.JsonRpcProvider(process.env.BSC_RPC);
 
-
-// آدرس Pair RUZA / BNB
+// آدرس‌ها
 const PAIR_ADDRESS = "0xF65A43a119D2eFdd9512d319E1cf43b65dDDf43c";
-
-// آدرس Chainlink BNB/USD Price Feed در BSC
+const RUZA = "0x2ec86e1b869cb251fe9441f02c01761543e6cbbd";
 const BNB_USD_FEED = "0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee";
 
+// ABI
 const pairAbi = [
-  "function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
-  "function token0() view returns (address)"
+  "function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32)",
+  "function token0() view returns (address)",
+  "function token1() view returns (address)"
+];
+
+const erc20Abi = [
+  "function decimals() view returns (uint8)"
 ];
 
 const priceFeedAbi = [
@@ -361,39 +365,48 @@ app.get("/api/liveprice", async (req, res) => {
     const pair = new ethers.Contract(PAIR_ADDRESS, pairAbi, provider);
     const priceFeed = new ethers.Contract(BNB_USD_FEED, priceFeedAbi, provider);
 
-    const [reserves, token0, roundData] = await Promise.all([
+    const [reserves, token0, token1] = await Promise.all([
       pair.getReserves(),
       pair.token0(),
+      pair.token1()
+    ]);
+
+    const token0Contract = new ethers.Contract(token0, erc20Abi, provider);
+    const token1Contract = new ethers.Contract(token1, erc20Abi, provider);
+
+    const [dec0, dec1, roundData] = await Promise.all([
+      token0Contract.decimals(),
+      token1Contract.decimals(),
       priceFeed.latestRoundData()
     ]);
 
-    const reserve0 = Number(reserves[0]);
-    const reserve1 = Number(reserves[1]);
+    // تبدیل BigInt به float با در نظر گرفتن decimals
+    const reserve0 = Number(reserves[0]) / 10 ** dec0;
+    const reserve1 = Number(reserves[1]) / 10 ** dec1;
 
-    // قیمت RUZA بر حسب BNB
     let priceInBNB;
 
-    if (token0.toLowerCase() === "0x2ec86e1b869cb251fe9441f02c01761543e6cbbd".toLowerCase()) {
+    if (token0.toLowerCase() === RUZA.toLowerCase()) {
+      // RUZA = token0
       priceInBNB = reserve1 / reserve0;
     } else {
+      // RUZA = token1
       priceInBNB = reserve0 / reserve1;
     }
 
-    // قیمت BNB به USD (Chainlink دارای 8 اعشار است)
     const bnbUsd = Number(roundData[1]) / 1e8;
 
-    const priceInUsd = priceInBNB * bnbUsd;
+    const priceUsd = priceInBNB * bnbUsd;
 
     res.json({
-      price: Number(priceInUsd.toFixed(8))
+      price: Number(priceUsd.toFixed(8))
     });
 
   } catch (err) {
-    console.error("USD price error:", err);
+    console.error("PRICE ERROR:", err);
     res.json({ price: null });
   }
 });
-
 
 
 
