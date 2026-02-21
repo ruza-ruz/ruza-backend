@@ -10,6 +10,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
+    "openai": "^4.0.0"
     "express-rate-limit": "^6.11.2",
     "express-session": "^1.18.2",
     "mongoose": "^7.8.7",
