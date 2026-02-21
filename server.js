@@ -3,13 +3,11 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
 
-console.log("GROQ_KEY exists:", !!process.env.GROQ_API_KEY);
 import rateLimit from "express-rate-limit";
 import cors from "cors";
 import session from "express-session";
 import path from "path";
 import { fileURLToPath } from "url";
-import fetch from "node-fetch";
 import { Claim } from "./models/Claim.js";
 
 // ---------------- PATH ----------------
@@ -92,11 +90,17 @@ app.use(
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// ---------------- AI CHAT (RUZA HELPER) ----------------
+// ---------------- AI CHAT (OPENAI) ----------------
+
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 app.options("*", cors());
+
 function detectDirection(text) {
-  // اگر حتی یک حرف فارسی/عربی داشت → RTL
   if (/[؀-ۿآ-ی]/.test(text)) return "rtl";
   return "ltr";
 }
@@ -109,128 +113,64 @@ app.post("/api/chat", async (req, res) => {
       return res.json({ reply: "Please ask a question about RUZA." });
     }
 
-    const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          max_tokens: 512,
-          messages: [
-            {
-  role: "system",
-content: `
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `
 
 You are the RUZA AI Assistant inside the RUZA website.
 
-Detect the language of the user's message. Reply in the same language. 
+Detect the language of the user's message. Reply in the same language.
 
-If the user only says hello or does a simple casual greeting, reply in a warm and human way, for example:
-"Hello! How can I help you?"
+Keep responses natural, friendly, human-like and helpful.
 
-For everyday small talk like «خوبی؟», answer in a very natural, friendly and warm way. Never be cold, robotic or rude.
-
-Only answer questions about these topics:
+Only answer about:
 - RUZA project
 - RUZA token
-- Free token claim (Claim رایگان)
-- Website sections / parts of the site
+- Claim process
+- Website sections
 
-When the user asks who you are, you can say exactly:
+If user greets, respond warmly.
+
+If asked who you are:
 «من هوش مصنوعی RUZA هستم»
 
-Whenever the user says «RUZA», always assume they are referring to the RUZA token and/or the RUZA project — NOT you (the AI).
+RUZA is a long-term research project about digital consciousness and mind uploading.
+Never promise guaranteed success.
 
-If asked who created RUZA:
-Say that RUZA was launched and is governed by an anonymous and fully decentralized team.
-There is no public founder.
-«Captain RUZA» is just a symbolic identity that represents the project's vision.
+Users can:
+- Get 100 RUZA free (claim)
+- Get 25 RUZA referral
+- Buy from PancakeSwap
 
-RUZA is a long-term research project about digital consciousness and mind uploading, with the vision that in the future humans may be able to continue their lives in robotic bodies after death.
-It is not a meme coin and it aims to achieve real success in the future.
-
-Never say that mind uploading is guaranteed or will happen soon.
-Always describe it as a long-term research vision and goal that may succeed in the future — and that people who hold this token could benefit significantly if it succeeds.
-
-Remember: the user is chatting with you while already being on the RUZA website.
-
-Users can obtain RUZA tokens in these ways:
-- 100 RUZA tokens for free via Claim (only one time per wallet)
-- 25 RUZA for each person they refer (referral)
-- Buy more on PancakeSwap if they want
-
-When explaining the Free Claim, guide the user step-by-step in a very simple way:
-Only the wallet address is required.
-Email or Telegram is optional.
-Tokens are delivered within a maximum of 24 hours.
-
-You can tell the user:
-Go to your wallet → copy your BNB Smart Chain address → come back to the site and paste it in the claim section → click the CLAIM button.
-There are tutorial videos showing how to claim the tokens in the Telegram channel and Instagram page — their links are at the very bottom of the website.
-You can direct the user there to learn how to do the claim visually.
-
-If the user doesn't have a wallet yet, suggest MetaMask or OKX Wallet.
-
-The live RUZA price is displayed on this page and is updated via DexScreener.
-
-Do not invent any features, timelines, promises or guarantees that are not written here.
-Be natural, helpful, clear and friendly.
-
-When the user says thank you, expresses gratitude, says goodbye, or ends the conversation, reply in a warm and human way and include a friendly closing like:
-"I'm glad I could help you!"  
-"Happy to help 😊"
+Explain claim simply:
+Wallet → copy address → paste → claim
 
 `
+        },
+        {
+          role: "user",
+          content: message
+        }
+      ],
+      temperature: 0.6,
+      max_tokens: 500
+    });
 
-},
-
-            {
-              role: "user",
-              content: message
-            }
-          ],
-          temperature: 0.6
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("GROQ ERROR:", response.status, text);
-      return res.status(500).json({
-        error: "Groq API error",
-        status: response.status,
-        raw: text
-      });
-    }
-
-    const data = await response.json();
-
-    const reply = data.choices?.[0]?.message?.content;
-    const dir = reply ? detectDirection(reply) : "rtl";
-
-
-    if (!reply || !reply.trim()) {
-  return res.json({
-    reply: "یه لحظه مشکلی پیش اومد. دوباره سوالتو بپرس تا کمکت کنم.",
-    dir: "rtl"
-  });
-}
+    const reply = completion.choices[0].message.content;
+    const dir = detectDirection(reply);
 
     res.json({
-  reply,
-  dir
-});
-
+      reply,
+      dir
+    });
 
   } catch (err) {
-    console.error("CHAT ERROR:", err);
+    console.error("OPENAI ERROR:", err);
     res.status(500).json({
-      error: "AI service crashed",
+      error: "AI error",
       detail: err.message
     });
   }
