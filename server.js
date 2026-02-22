@@ -13,6 +13,7 @@ import { Claim } from "./models/Claim.js";
 // ---------------- PATH ----------------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const userChats = {};
 
 // ---------------- ENV ----------------
 const PORT = process.env.PORT || 5000;
@@ -107,11 +108,27 @@ function detectDirection(text) {
 
 app.post("/api/chat", async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, userId } = req.body;
 
     if (!message) {
       return res.json({ reply: "Please ask a question about RUZA." });
     }
+
+    const id = userId || "default";
+
+    // ساخت حافظه برای کاربر
+    if (!userChats[id]) {
+      userChats[id] = [];
+    }
+
+    // ذخیره پیام کاربر
+    userChats[id].push({
+      role: "user",
+      content: message
+    });
+
+    // فقط 10 پیام آخر برای کاهش هزینه
+    const history = userChats[id].slice(-10);
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -157,11 +174,6 @@ Psychological triggers:
 2. Social proof (others are doing it)
 3. Curiosity (something interesting is happening)
 
-Examples of subtle persuasion:
-- "Most people who just joined today already claimed their RUZA"
-- "This free distribution won't last forever"
-- "Some users are already collecting extra RUZA through referrals"
-
 When user asks about RUZA:
 Explain simply, then add a soft hint about claiming.
 
@@ -171,21 +183,8 @@ Explain clearly and simply, then add urgency.
 When user greets:
 Respond naturally WITHOUT repeating generic phrases.
 
-Example:
-User: سلام
-Good: سلام 👋 خوش اومدی
-Bad: سلام 👋 هر سوالی داری بپرس
-
-When user asks price:
-Answer briefly, and guide them to check chart or site.
-
-When user asks about team/contact:
-Say:
-"The project is community-driven and decentralized, but you can join the official Telegram for updates."
-
 When user shows interest:
 Offer help:
-
 "اگر خواستی، قدم‌به‌قدم راهنمای Claim رو برات بگم"
 
 When user says "guide" or shows intent:
@@ -206,21 +205,23 @@ Make the user feel like:
 "This is interesting... maybe I should claim now"
 `
         },
-        {
-          role: "user",
-          content: message
-        }
+        ...history
       ],
       temperature: 0.6,
       max_tokens: 500
     });
 
     const reply = completion.choices[0].message.content;
-    const dir = detectDirection(reply);
+
+    // ذخیره پاسخ AI
+    userChats[id].push({
+      role: "assistant",
+      content: reply
+    });
 
     res.json({
       reply,
-      dir
+      dir: detectDirection(reply)
     });
 
   } catch (err) {
