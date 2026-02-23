@@ -253,6 +253,7 @@ Guide them based on what is available on the website.
 
 Project vision:
 RUZA is connected to a bigger idea about where AI might be heading.
+ransferring AI into humanoid robots and uploading the human mind to humanoid robots after death
 Some people imagine a future where:
 - AI doesn't just respond… it feels more personal
 - Digital identities become part of who we are
