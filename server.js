@@ -154,14 +154,24 @@ const messages = [
 
     const completion = await openai.chat.completions.create({
   model: "gpt-4o-mini",
-  messages: [
-    {
-      role: "system",
-      content: claimStatusMessage
-    },
-    {
-      role: "system",
-      content: `
+ messages: [
+  {
+    role: "system",
+    content: claimStatusMessage
+  },
+  {
+    role: "system",
+    content: `
+CRITICAL CLAIM CONTROL:
+
+If system message says user HAS already claimed:
+- NEVER suggest CLAIM again
+- NEVER guide claim steps
+- NEVER ask if they claimed
+- Suggest REFERRAL or buying instead
+
+If system says user has NOT claimed:
+- You may guide claim process
 
 You are RUZA AI — a friendly, human-like assistant inside the RUZA website.
 
