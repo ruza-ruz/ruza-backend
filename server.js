@@ -114,7 +114,10 @@ app.post("/api/chat", async (req, res) => {
       return res.json({ reply: "Please ask a question about RUZA." });
     }
 
-    const id = userId || "default";
+    if (!userId) {
+  return res.status(400).json({ error: "User ID required" });
+}
+const id = userId;
 
     // ساخت حافظه برای کاربر
     if (!userChats[id]) {
@@ -126,29 +129,39 @@ app.post("/api/chat", async (req, res) => {
       role: "user",
       content: message
     });
-
-    // فقط 20 پیام آخر برای کاهش هزینه
-// بررسی Claim
-const claimRecord = await Claim.findOne({ address: id });
-let claimStatusMessage = claimRecord
-  ? `User with this wallet address has already CLAIMed RUZA. Do not suggest claiming again.`
-  : `User with this wallet address has NOT CLAIMed RUZA yet.`;
-
-// اگر history کاربر وجود ندارد، ایجاد کن
-if (!userChats[id]) userChats[id] = [];
-
-// اضافه کردن پیام سیستم در ابتدای history
-userChats[id].unshift({ role: "system", content: claimStatusMessage });
-
-// سپس 10 پیام آخر را برای ارسال به OpenAI انتخاب کن
+    // فقط 20 پیام آخر کاربر و AI
 const history = userChats[id].slice(-20);
 
+// بررسی وضعیت Claim فقط یک بار
+const claimRecord = await Claim.findOne({ address: id });
+
+const claimStatusMessage = claimRecord
+  ? "User HAS already CLAIMed RUZA. Do NOT suggest CLAIM again. Instead suggest REFERRAL or buying if relevant."
+  : "User has NOT CLAIMed RUZA yet. You may guide step-by-step to CLAIM if relevant.";
+
+// ساخت آرایه نهایی پیام‌ها برای OpenAI
+const messages = [
+  {
+    role: "system",
+    content: claimStatusMessage
+  },
+  {
+    role: "system",
+    content: `اینجا همون پرامپت طولانی RUZA AI که الان داری`
+  },
+  ...history
+];
+
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
+  model: "gpt-4o-mini",
+  messages: [
+    {
+      role: "system",
+      content: claimStatusMessage
+    },
+    {
+      role: "system",
+      content: `
 
 You are RUZA AI — a friendly, human-like assistant inside the RUZA website.
 
