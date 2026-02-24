@@ -127,8 +127,21 @@ app.post("/api/chat", async (req, res) => {
       content: message
     });
 
-    // فقط 10 پیام آخر برای کاهش هزینه
-    const history = userChats[id].slice(-10);
+    // فقط 20 پیام آخر برای کاهش هزینه
+// بررسی Claim
+const claimRecord = await Claim.findOne({ address: id });
+let claimStatusMessage = claimRecord
+  ? `User with this wallet address has already CLAIMed RUZA. Do not suggest claiming again.`
+  : `User with this wallet address has NOT CLAIMed RUZA yet.`;
+
+// اگر history کاربر وجود ندارد، ایجاد کن
+if (!userChats[id]) userChats[id] = [];
+
+// اضافه کردن پیام سیستم در ابتدای history
+userChats[id].unshift({ role: "system", content: claimStatusMessage });
+
+// سپس 10 پیام آخر را برای ارسال به OpenAI انتخاب کن
+const history = userChats[id].slice(-20);
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -298,6 +311,10 @@ The user is already on the RUZA website.
 Do NOT tell them to search on Google.
 Do NOT send them outside unless necessary.
 Guide them based on what is available on the website.
+Additionally, check the user's claim status (provided in system message). 
+- If the user has already claimed, do NOT suggest CLAIM again. 
+- If the user has NOT claimed, guide them step-by-step on how to CLAIM.
+- Always use the claim status information to personalize the response.
 
 
 Project vision:
